@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorting Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    /* Login Styles */
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px 30px;
+      text-align: center;
+    }
+
+    .login-header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .login-header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .login-body {
+      padding: 40px 30px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .password-toggle {
+      position: relative;
+    }
+
+    .password-toggle input {
+      padding-right: 45px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 18px;
+      color: #666;
+      user-select: none;
+    }
+
+    .toggle-password:hover {
+      color: #667eea;
+    }
+
+    /* Dashboard Styles */
+    .dashboard-wrapper {
+      display: none;
+    }
+
+    .dashboard-wrapper.show {
+      display: block;
+    }
+
+    .login-container.hide {
+      display: none;
+    }
+
+    .user-bar {
+      background: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .user-info-bar {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    .user-role {
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .btn-logout {
+      padding: 10px 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-logout:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .controls {
+      padding: 30px;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: 'center';
+      gap: 20px;
+      align-items: end;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .summary {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .summary-card {
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .summary-card.total {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .summary-card.first {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .summary-card.second {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+    }
+
+    .summary-card.reject {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: white;
+    }
+
+    .summary-card.bhangar {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #333;
+    }
+
+    .summary-card h3 {
+      font-size: 14px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .summary-card .value {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .summary-card .percentage {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab:hover {
+      color: #667eea;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .item-type-section {
+      margin-bottom: 40px;
+    }
+
+    .section-header {
+      background: linear-gradient(135deg, #C85A28 0%, #E67E22 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px 10px 0 0;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .data-table thead {
+      background: #f8f9fa;
+    }
+
+    .data-table th {
+      padding: 15px;
+      text-align: center;
+      font-weight: 600;
+      color: #333;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    .data-table td {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    .data-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .data-table tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .data-table input {
+      width: 80px;
+      padding: 8px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .data-table input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .total-row {
+      background: #fff3cd !important;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .percentage-row {
+      background: #d1ecf1 !important;
+      font-weight: bold;
+      color: #0c5460;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-size: 18px;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+
+      0%,
+      20% {
+        content: '.';
+      }
+
+      40% {
+        content: '..';
+      }
+
+      60%,
+      100% {
+        content: '...';
+      }
+    }
+
+    .message {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* Toast Notification Styles */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      min-width: 300px;
+      max-width: 500px;
+      padding: 16px 20px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      color: white;
+      font-weight: 600;
+      font-size: 15px;
+      z-index: 9999;
+      animation: slideIn 0.3s ease-out;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .toast.error {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    }
+
+    .toast.info {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .toast.warning {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .toast-icon {
+      font-size: 24px;
+    }
+
+    .toast-close {
+      margin-left: auto;
+      cursor: pointer;
+      font-size: 20px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .toast-close:hover {
+      opacity: 1;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    .toast.hiding {
+      animation: slideOut 0.3s ease-in;
+    }
+
+    .date-warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      color: #856404;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin: 20px 30px;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date-warning.active {
+      display: flex;
+    }
+
+    .date-warning-icon {
+      font-size: 24px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* Fullscreen Loading Overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      color: #fff;
+      font-size: 20px;
+      font-weight: 600;
+      margin-top: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    @media (max-width: 768px) {
+      .control-group {
+        flex-direction: column;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        flex-wrap: wrap;
+      }
+
+      .data-table {
+        font-size: 12px;
+      }
+
+      .data-table input {
+        width: 60px;
+      }
+
+      .user-bar {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Login Form -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-header">
+      <h1>Sorting Dashboard</h1>
+      <p>Sanitaryware Sorting Management System</p>
+    </div>
+    <div class="login-body">
+      <div id="loginMessage" class="message" style="display: none;"></div>
+
+      <form id="loginForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="userId">User ID</label>
+          <input type="text" id="userId" placeholder="Enter your user ID" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-toggle">
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <span class="toggle-password" onclick="togglePassword()">👁️</span>
+          </div>
+        </div>
+        <button type="submit" class="btn-login" id="loginBtn" onclick="login()">Login</button>
+      </form>
+      <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
+        <p>Roxo Sanitaryware</p>
+      </div>
+    </div>
+  </div>
+
+  <div
+    style="max-width: 800px; margin: 20px auto 0; text-align: center; font-size: 20px; color: rgba(255,255,255,0.9); font-style: italic; line-height: 1.6; padding: 0 20px;">
+    આપણું લક્ષ્ય માત્ર વધુ ઉત્પાદન કરવાનું નથી, પરંતુ વધુ First Quality ઉત્પાદન કરવાનું છે. દરેક Reject અને Second
+    Quality પીસ કંપનીના નફામાં ઘટાડો કરે છે. જો દરેક વિભાગ પોતાની પ્રક્રિયામાં સુધારો કરશે, તો First Quality વધશે, ખર્ચ
+    ઘટશે અને કંપની વધુ નફાકારક બનશે.
+  </div>
+
+  <!-- Dashboard Wrapper -->
+  <div class="dashboard-wrapper" id="dashboardWrapper">
+    <!-- User Bar -->
+    <!-- Main Dashboard Container -->
+    <div class="container">
+      <div class="header">
+        <h1>Sorting Dashboard</h1>
+        <p>Real-time Sorting Tracking & Quality Analysis</p>
+        <!-- <p style="font-size: 14px; margin-top: 12px; font-style: italic; opacity: 0.95; max-width: 900px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+          આપણું લક્ષ્ય માત્ર વધુ ઉત્પાદન કરવાનું નથી, પરંતુ વધુ First Quality ઉત્પાદન કરવાનું છે. દરેક Reject અને Second Quality પીસ કંપનીના નફામાં ઘટાડો કરે છે. જો દરેક વિભાગ પોતાની પ્રક્રિયામાં સુધારો કરશે, તો First Quality વધશે, ખર્ચ ઘટશે અને કંપની વધુ નફાકારક બનશે.
+        </p> -->
+      </div>
+      <div class="user-bar" id="userBar">
+        <div class="user-info-bar">
+          <span class="user-name" id="displayUserName">User Name</span>
+          <span class="user-role" id="displayUserRole">User</span>
+        </div>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+      </div>
+      <div class="controls">
+        <div class="control-group">
+          <div class="form-group" style="margin-bottom: 0px;">
+            <label for="fromDate">From Date</label>
+            <input type="date" id="fromDate">
+          </div>
+          <div class="form-group" style="margin-bottom: 0px;">
+            <label for="toDate">To Date</label>
+            <input type="date" id="toDate">
+          </div>
+          <button class="btn btn-primary" onclick="loadDashboard()">Load Data</button>
+          <button class="btn btn-success" onclick="openPrintView()">Print Report</button>
+          <button class="btn btn-secondary" onclick="openDailyReportModal()">Daily Report</button>
+          <button class="btn btn-success" onclick="openAddItemModal()">+ Add Item</button>
+        </div>
+      </div>
+
+      <div id="messageContainer"></div>
+
+      <div class="date-warning" id="dateWarning">
+        <span class="date-warning-icon">⚠️</span>
+        <span>Date range selection active - Data entry is disabled. Please select the same date for From and To to
+          enable editing.</span>
+      </div>
+
+      <div class="summary" id="summarySection" style="display: none;">
+        <div class="summary-card total">
+          <h3>Total Items</h3>
+          <div class="value" id="totalValue">0</div>
+          <div class="percentage">100%</div>
+        </div>
+        <div class="summary-card first">
+          <h3>First Quality</h3>
+          <div class="value" id="firstValue">0</div>
+          <div class="percentage" id="firstPct">0%</div>
+        </div>
+        <div class="summary-card second">
+          <h3>Second Quality</h3>
+          <div class="value" id="secondValue">0</div>
+          <div class="percentage" id="secondPct">0%</div>
+        </div>
+        <div class="summary-card reject">
+          <h3>Reject</h3>
+          <div class="value" id="rejectValue">0</div>
+          <div class="percentage" id="rejectPct">0%</div>
+        </div>
+        <div class="summary-card bhangar">
+          <h3>Bhangar</h3>
+          <div class="value" id="bhangarValue">0</div>
+          <div class="percentage" id="bhangarPct">0%</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="tabs" id="tabsContainer"></div>
+        <div id="tabContentContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Saving data...</div>
+  </div>
+
+  <!-- Add Item Modal -->
+  <div class="modal" id="addItemModal">
+    <div class="modal-content">
+      <div class="modal-header">Add New Item</div>
+      <div class="form-group">
+        <label for="newItemType">Item Type</label>
+        <select id="newItemType">
+          <option value="">Select Type</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="newItemTypeCustom">Or Enter New Type</label>
+        <input type="text" id="newItemTypeCustom" placeholder="Enter new item type" disabled>
+      </div>
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="newItemName">Item Name</label>
+        <input type="text" id="newItemName" placeholder="Enter item name">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeAddItemModal()">Cancel</button>
+        <button class="btn btn-success" onclick="addNewItem()">Add Item</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Report Modal -->
+  <div class="modal" id="dailyReportModal">
+    <div class="modal-content">
+      <div class="modal-header">Generate Daily Report</div>
+      <div class="form-group">
+        <label for="reportItemName">Select Item</label>
+        <select id="reportItemName">
+          <option value="">Select Item</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="reportFromDate">From Date</label>
+        <input type="date" id="reportFromDate">
+      </div>
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="reportToDate">To Date</label>
+        <input type="date" id="reportToDate">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeDailyReportModal()">Cancel</button>
+        <button class="btn btn-success" onclick="generateDailyReport()">Generate Report</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let itemTypes = {};
+    let currentDate = '';
+    let productionData = {};
+    let isDateRangeActive = false;
+    let currentUser = null;
+
+    // Login Functions
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const toggleIcon = document.querySelector('.toggle-password');
+
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.textContent = '🙈';
+      } else {
+        passwordInput.type = 'password';
+        toggleIcon.textContent = '👁️';
+      }
+    }
+
+    function showLoginMessage(message, type) {
+      showToast(message);
+      // const messageBox = document.getElementById('loginMessage');
+      // messageBox.textContent = message;
+      // messageBox.className = `message ${type}`;
+      // messageBox.style.display = 'block';
+
+      // setTimeout(() => {
+      //   messageBox.style.display = 'none';
+      // }, 5000);
+    }
+
+    function login() {
+      const userId = document.getElementById('userId').value.trim();
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('loginBtn');
+
+      if (!userId || !password) {
+        showLoginMessage('Please enter both User ID and Password', 'error');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Logging in...';
+
+      google.script.run
+        .withSuccessHandler(onLoginSuccess)
+        .withFailureHandler(onLoginFailure)
+        .authenticateUser(userId, password);
+    }
+
+    function onLoginSuccess(result) {
+      const loginBtn = document.getElementById('loginBtn');
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login';
+
+      if (result.success) {
+        currentUser = {
+          userId: result.userId,
+          userName: result.userName,
+          role: result.role
+        };
+
+        showLoginMessage('Login successful! Loading dashboard...', 'success');
+
+        setTimeout(() => {
+          showDashboard();
+        }, 1000);
+      } else {
+        showLoginMessage(result.message, 'error');
+      }
+    }
+
+    function onLoginFailure(error) {
+      const loginBtn = document.getElementById('loginBtn');
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login';
+      showLoginMessage('Login failed: ' + error.message, 'error');
+    }
+
+    function showDashboard() {
+      document.getElementById('loginContainer').classList.add('hide');
+      document.getElementById('dashboardWrapper').classList.add('show');
+
+      // Update user info
+      document.getElementById('displayUserName').textContent = currentUser.userName;
+      document.getElementById('displayUserRole').textContent = currentUser.role;
+
+      // Initialize dashboard
+      initDates();
+      loadDashboard();
+    }
+
+    function logout() {
+      if (!confirm('Are you sure you want to logout?')) {
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(() => {
+          currentUser = null;
+
+          document.getElementById('dashboardWrapper').classList.remove('show');
+          document.getElementById('loginContainer').classList.remove('hide');
+
+          document.getElementById('userId').value = '';
+          document.getElementById('password').value = '';
+
+          showLoginMessage('Logged out successfully', 'success');
+        })
+        .withFailureHandler((error) => {
+          showToast('Logout error: ' + error.message, 'error');
+        })
+        .logoutUser();
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+      const existingToasts = document.querySelectorAll('.toast');
+      existingToasts.forEach(toast => toast.remove());
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      const icons = {
+        success: '✓',
+        error: '✕',
+        info: 'ℹ',
+        warning: '⚠'
+      };
+
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span>${message}</span>
+        <span class="toast-close" onclick="this.parentElement.remove()">×</span>
+      `;
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('hiding');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Initialize dates
+    function initDates() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+
+      document.getElementById('fromDate').value = dateStr;
+      document.getElementById('toDate').value = dateStr;
+      document.getElementById('reportFromDate').value = dateStr;
+      document.getElementById('reportToDate').value = dateStr;
+
+      currentDate = `${dd}/${mm}/${yyyy}`;
+
+      document.getElementById('fromDate').addEventListener('change', checkDateRange);
+      document.getElementById('toDate').addEventListener('change', checkDateRange);
+    }
+
+    // Always sync To Date with From Date
+    document.getElementById('fromDate').addEventListener('change', function () {
+      document.getElementById('toDate').value = this.value;
+    });
+
+    // Check if date range is active
+    function checkDateRange() {
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+
+      if (!fromDate || !toDate) {
+        return;
+      }
+
+      isDateRangeActive = fromDate !== toDate;
+
+      const dateWarning = document.getElementById('dateWarning');
+
+      if (isDateRangeActive) {
+        dateWarning.classList.add('active');
+        showToast('Date range selected - Data entry disabled. Select same date to enable editing.', 'warning');
+      } else {
+        dateWarning.classList.remove('active');
+      }
+
+      toggleInputFields();
+    }
+
+    // Toggle input fields and save buttons based on date range
+    function toggleInputFields() {
+      const inputs = document.querySelectorAll('.data-table input[type="number"]');
+      const saveButtons = document.querySelectorAll('.action-buttons .btn-success');
+
+      inputs.forEach(input => {
+        input.disabled = isDateRangeActive;
+        if (isDateRangeActive) {
+          input.style.backgroundColor = '#e9ecef';
+          input.style.cursor = 'not-allowed';
+        } else {
+          input.style.backgroundColor = 'white';
+          input.style.cursor = 'text';
+        }
+      });
+
+      saveButtons.forEach(button => {
+        button.disabled = isDateRangeActive;
+        if (isDateRangeActive) {
+          button.style.opacity = '0.5';
+          button.style.cursor = 'not-allowed';
+        } else {
+          button.style.opacity = '1';
+          button.style.cursor = 'pointer';
+        }
+      });
+    }
+
+    // Convert date format
+    function convertDateFormat(dateStr) {
+      const parts = dateStr.split('-');
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function showLoading(text) {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.querySelector('.loading-text').textContent = text || 'Loading...';
+      overlay.classList.add('active');
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.remove('active');
+    }
+
+    function loadDashboard(onComplete) {
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+
+      if (!fromDate || !toDate) {
+        showToast('Please select both dates', 'error');
+        return;
+      }
+
+      showToast('Loading dashboard data...from:' + fromDate + ' to:' + toDate, 'info');
+
+      const container = document.getElementById('tabContentContainer');
+      container.innerHTML = '<div class="loading">Loading data</div>';
+
+      const fromDateFormatted = convertDateFormat(fromDate);
+      const toDateFormatted = convertDateFormat(toDate);
+
+      let pendingCalls = 2;
+      function checkDone() {
+        pendingCalls--;
+        if (pendingCalls <= 0) {
+          hideLoading();
+          checkDateRange();
+          if (onComplete) onComplete();
+        }
+      }
+
+      google.script.run
+        .withSuccessHandler((data) => {
+          if (!data || Object.keys(data).length === 0) {
+            showToast('No item types found. Please add items first.', 'warning');
+            container.innerHTML = '<div class="loading">No item types configured. Please add items using the "Add Item" button.</div>';
+            checkDone();
+            return;
+          }
+          itemTypes = data;
+
+          // Load production data
+          google.script.run
+            .withSuccessHandler((productionDataArray) => {
+              if (!productionDataArray) {
+                showToast('No production data found for this date range', 'warning');
+                productionData = {};
+              } else {
+                productionData = processProductionData(productionDataArray);
+              }
+              renderTabs();
+              showToast('Dashboard loaded successfully!', 'success');
+              checkDone();
+            })
+            .withFailureHandler((error) => {
+              console.error('Error loading production data:', error);
+              showToast('Error loading production data: ' + error.message, 'error');
+              container.innerHTML = '<div class="loading">Error loading data. Please try again.</div>';
+              checkDone();
+            })
+            .getProductionData(fromDateFormatted, toDateFormatted);
+        })
+        .withFailureHandler((error) => {
+          console.error('Error loading item types:', error);
+          showToast('Error loading data: ' + error.message, 'error');
+          container.innerHTML = '<div class="loading">Error loading data. Please try logging in again.</div>';
+          checkDone();
+        })
+        .getItemTypes();
+
+      // Load summary independently
+      google.script.run
+        .withSuccessHandler((summary) => {
+          onSummaryLoaded(summary);
+          checkDone();
+        })
+        .withFailureHandler((error) => {
+          console.error('Error loading summary:', error);
+          checkDone();
+        })
+        .getDashboardSummary(fromDateFormatted, toDateFormatted);
+    }
+    // function processProductionData(dataArray) {
+    //   const processed = {};
+
+    //   dataArray.forEach(row => {
+    //     const itemType = row.itemType;
+    //     const itemName = row.itemName;
+
+    //     if (!processed[itemType]) {
+    //       processed[itemType] = {};
+    //     }
+    //     if (!processed[itemType][itemName]) {
+    //       processed[itemType][itemName] = {
+    //         first: 0,
+    //         second: 0,
+    //         reject: 0,
+    //         bhangar: 0,
+    //         total: 0
+    //       };
+    //     }
+
+    //     processed[itemType][itemName].first += row.first;
+    //     processed[itemType][itemName].second += row.second;
+    //     processed[itemType][itemName].reject += row.reject;
+    //     processed[itemType][itemName].bhangar += row.bhangar;
+    //     processed[itemType][itemName].total += row.total;
+    //   });
+
+    //   return processed;
+    // }
+    function processProductionData(dataArray) {
+      const processed = {};
+
+      // Check if dataArray is null or not an array
+      if (!dataArray || !Array.isArray(dataArray)) {
+        console.warn('No production data received or invalid data format');
+        return processed; // Return empty object instead of crashing
+      }
+
+      dataArray.forEach(row => {
+        const itemType = row.itemType;
+        const itemName = row.itemName;
+
+        if (!processed[itemType]) {
+          processed[itemType] = {};
+        }
+        if (!processed[itemType][itemName]) {
+          processed[itemType][itemName] = {
+            first: 0,
+            second: 0,
+            reject: 0,
+            bhangar: 0,
+            total: 0
+          };
+        }
+
+        processed[itemType][itemName].first += row.first;
+        processed[itemType][itemName].second += row.second;
+        processed[itemType][itemName].reject += row.reject;
+        processed[itemType][itemName].bhangar += row.bhangar;
+        processed[itemType][itemName].total += row.total;
+      });
+
+      return processed;
+    }
+
+    function onDataLoaded(data) {
+      itemTypes = data;
+    }
+
+    function onSummaryLoaded(summary) {
+      document.getElementById('summarySection').style.display = 'grid';
+      document.getElementById('totalValue').textContent = summary.grandTotal;
+      document.getElementById('firstValue').textContent = summary.totalFirst;
+      document.getElementById('firstPct').textContent = summary.firstPct + '%';
+      document.getElementById('secondValue').textContent = summary.totalSecond;
+      document.getElementById('secondPct').textContent = summary.secondPct + '%';
+      document.getElementById('rejectValue').textContent = summary.totalReject;
+      document.getElementById('rejectPct').textContent = summary.rejectPct + '%';
+      document.getElementById('bhangarValue').textContent = summary.totalBhangar;
+      document.getElementById('bhangarPct').textContent = summary.bhangarPct + '%';
+    }
+
+    function renderTabs() {
+      const tabsContainer = document.getElementById('tabsContainer');
+      const contentContainer = document.getElementById('tabContentContainer');
+
+      tabsContainer.innerHTML = '';
+      contentContainer.innerHTML = '';
+
+      // Sort item types alphabetically
+      const sortedItemTypes = Object.keys(itemTypes).sort((a, b) =>
+        a.toLowerCase().localeCompare(b.toLowerCase())
+      );
+
+      let isFirst = true;
+
+      sortedItemTypes.forEach(itemType => {
+        const tab = document.createElement('button');
+        tab.className = 'tab' + (isFirst ? ' active' : '');
+        tab.textContent = itemType;
+        tab.onclick = () => switchTab(itemType);
+        tabsContainer.appendChild(tab);
+
+        const content = document.createElement('div');
+        content.className = 'tab-content' + (isFirst ? ' active' : '');
+        content.id = `tab-${itemType}`;
+        content.innerHTML = renderItemTypeSection(itemType);
+        contentContainer.appendChild(content);
+
+        isFirst = false;
+      });
+
+      if (sortedItemTypes.length === 0) {
+        contentContainer.innerHTML = '<div class="loading">No data available for selected date range</div>';
+      }
+    }
+
+    function switchTab(itemType) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById(`tab-${itemType}`).classList.add('active');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderItemTypeSection(itemType) {
+      const items = itemTypes[itemType];
+      const typeData = productionData[itemType] || {};
+
+      // Sort items alphabetically
+      const sortedItems = items.slice().sort((a, b) =>
+        a.toLowerCase().localeCompare(b.toLowerCase())
+      );
+
+      let html = `
+        <div class="item-type-section">
+          <div class="section-header">
+            <span>${escapeHtml(itemType)}</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="text-align:left;">Items</th>
+                <th>FIRST</th>
+                <th>SECOND</th>
+                <th>REJECT</th>
+                <th>BHANGAR</th>
+                <th>TOTAL</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      let totals = { first: 0, second: 0, reject: 0, bhangar: 0, total: 0 };
+
+      const encodedItemType = btoa(unescape(encodeURIComponent(itemType)));
+
+      sortedItems.forEach(itemName => {
+        const data = typeData[itemName] || { first: 0, second: 0, reject: 0, bhangar: 0, total: 0 };
+
+        totals.first += data.first;
+        totals.second += data.second;
+        totals.reject += data.reject;
+        totals.bhangar += data.bhangar;
+        totals.total += data.total;
+
+        const encodedItemName = btoa(unescape(encodeURIComponent(itemName)));
+        const currentTotal = data.first + data.second + data.reject + data.bhangar;
+
+        html += `
+          <tr>
+            <td>${itemName}</td>
+            <td><input type="number" min="0" value="${data.first}" onchange="updateTotalFromInput(this)" data-item-type="${encodedItemType}" data-item-name="${encodedItemName}" data-field="first"></td>
+            <td><input type="number" min="0" value="${data.second}" onchange="updateTotalFromInput(this)" data-item-type="${encodedItemType}" data-item-name="${encodedItemName}" data-field="second"></td>
+            <td><input type="number" min="0" value="${data.reject}" onchange="updateTotalFromInput(this)" data-item-type="${encodedItemType}" data-item-name="${encodedItemName}" data-field="reject"></td>
+            <td><input type="number" min="0" value="${data.bhangar}" onchange="updateTotalFromInput(this)" data-item-type="${encodedItemType}" data-item-name="${encodedItemName}" data-field="bhangar"></td>
+            <td class="total-cell" id="total-${encodedItemType}-${encodedItemName}">${currentTotal}</td>
+          </tr>
+        `;
+      });
+
+      const finalTotal = totals.first + totals.second + totals.reject + totals.bhangar;
+
+      const firstPct = finalTotal > 0 ? (totals.first / finalTotal * 100).toFixed(2) : '0.00';
+      const secondPct = finalTotal > 0 ? (totals.second / finalTotal * 100).toFixed(2) : '0.00';
+      const rejectPct = finalTotal > 0 ? (totals.reject / finalTotal * 100).toFixed(2) : '0.00';
+      const bhangarPct = finalTotal > 0 ? (totals.bhangar / finalTotal * 100).toFixed(2) : '0.00';
+
+      html += `
+              <tr class="total-row" id="totals-${encodedItemType}">
+                <td>TOTAL</td>
+                <td id="total-first-${encodedItemType}">${totals.first}</td>
+                <td id="total-second-${encodedItemType}">${totals.second}</td>
+                <td id="total-reject-${encodedItemType}">${totals.reject}</td>
+                <td id="total-bhangar-${encodedItemType}">${totals.bhangar}</td>
+                <td id="total-all-${encodedItemType}">${finalTotal}</td>
+              </tr>
+              <tr class="percentage-row">
+                <td>PERCENTAGE</td>
+                <td id="pct-first-${encodedItemType}">${firstPct}%</td>
+                <td id="pct-second-${encodedItemType}">${secondPct}%</td>
+                <td id="pct-reject-${encodedItemType}">${rejectPct}%</td>
+                <td id="pct-bhangar-${encodedItemType}">${bhangarPct}%</td>
+                <td>100%</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="action-buttons">
+            <button class="btn btn-success" onclick="saveData(this, '${itemType.replace(/'/g, "\\'")}')">Save ${escapeHtml(itemType)}</button>
+          </div>
+        </div>
+      `;
+
+      return html;
+    }
+
+    function updateTotalFromInput(input) {
+      const encodedItemType = input.getAttribute('data-item-type');
+      const encodedItemName = input.getAttribute('data-item-name');
+      updateTotal(input, encodedItemType, encodedItemName);
+    }
+
+    function updateTotal(input, encodedItemType, encodedItemName) {
+      const row = input.closest('tr');
+      const inputs = row.querySelectorAll('input[type="number"]');
+
+      let total = 0;
+      inputs.forEach(inp => {
+        const value = parseInt(inp.value);
+        total += isNaN(value) ? 0 : value;
+      });
+
+      const totalCell = document.getElementById(`total-${encodedItemType}-${encodedItemName}`);
+
+      if (totalCell) {
+        totalCell.textContent = total;
+      }
+
+      updateTypeTotals(encodedItemType);
+    }
+
+    function updateTypeTotals(encodedItemType) {
+      const itemType = decodeURIComponent(escape(atob(encodedItemType)));
+      const items = itemTypes[itemType];
+
+      // Sort items to match display order
+      const sortedItems = items.slice().sort((a, b) =>
+        a.toLowerCase().localeCompare(b.toLowerCase())
+      );
+
+      let totals = { first: 0, second: 0, reject: 0, bhangar: 0, total: 0 };
+
+      sortedItems.forEach(itemName => {
+        const encodedItemName = btoa(unescape(encodeURIComponent(itemName)));
+        const totalCell = document.getElementById(`total-${encodedItemType}-${encodedItemName}`);
+
+        if (totalCell) {
+          const rowElement = totalCell.closest('tr');
+          const inputs = rowElement.querySelectorAll('input[type="number"]');
+
+          totals.first += parseInt(inputs[0].value) || 0;
+          totals.second += parseInt(inputs[1].value) || 0;
+          totals.reject += parseInt(inputs[2].value) || 0;
+          totals.bhangar += parseInt(inputs[3].value) || 0;
+        }
+      });
+
+      totals.total = totals.first + totals.second + totals.reject + totals.bhangar;
+
+      const safeItemType = encodedItemType;
+
+      document.getElementById(`total-first-${safeItemType}`).textContent = totals.first;
+      document.getElementById(`total-second-${safeItemType}`).textContent = totals.second;
+      document.getElementById(`total-reject-${safeItemType}`).textContent = totals.reject;
+      document.getElementById(`total-bhangar-${safeItemType}`).textContent = totals.bhangar;
+      document.getElementById(`total-all-${safeItemType}`).textContent = totals.total;
+
+      const firstPct = totals.total > 0 ? (totals.first / totals.total * 100).toFixed(2) : '0.00';
+      const secondPct = totals.total > 0 ? (totals.second / totals.total * 100).toFixed(2) : '0.00';
+      const rejectPct = totals.total > 0 ? (totals.reject / totals.total * 100).toFixed(2) : '0.00';
+      const bhangarPct = totals.total > 0 ? (totals.bhangar / totals.total * 100).toFixed(2) : '0.00';
+
+      document.getElementById(`pct-first-${safeItemType}`).textContent = firstPct + '%';
+      document.getElementById(`pct-second-${safeItemType}`).textContent = secondPct + '%';
+      document.getElementById(`pct-reject-${safeItemType}`).textContent = rejectPct + '%';
+      document.getElementById(`pct-bhangar-${safeItemType}`).textContent = bhangarPct + '%';
+    }
+
+    function saveData(btn, itemType) {
+      if (isDateRangeActive) {
+        showToast('Cannot save data when date range is active. Please select the same date for From and To.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      const fromDate = document.getElementById('fromDate').value;
+      const dateFormatted = convertDateFormat(fromDate);
+
+      showToast('Saving data...', 'info');
+
+      const items = itemTypes[itemType];
+
+      // Sort items to match display order
+      const sortedItems = items.slice().sort((a, b) =>
+        a.toLowerCase().localeCompare(b.toLowerCase())
+      );
+
+      const dataToSave = [];
+
+      sortedItems.forEach(itemName => {
+        const encodedItemType = btoa(unescape(encodeURIComponent(itemType)));
+        const encodedItemName = btoa(unescape(encodeURIComponent(itemName)));
+        const totalCell = document.getElementById(`total-${encodedItemType}-${encodedItemName}`);
+
+        if (totalCell) {
+          const rowElement = totalCell.closest('tr');
+          const inputs = rowElement.querySelectorAll('input[type="number"]');
+          const first = parseInt(inputs[0].value) || 0;
+          const second = parseInt(inputs[1].value) || 0;
+          const reject = parseInt(inputs[2].value) || 0;
+          const bhangar = parseInt(inputs[3].value) || 0;
+          const total = first + second + reject + bhangar;
+
+          dataToSave.push({
+            itemName: itemName,
+            first: first,
+            second: second,
+            reject: reject,
+            bhangar: bhangar,
+            total: total
+          });
+        }
+      });
+
+      showLoading('Saving data...');
+
+      google.script.run
+        .withSuccessHandler((result) => {
+          if (result.success) {
+            showToast(`✓ ${itemType} data saved successfully!`, 'success');
+            loadDashboard(() => {
+              btn.disabled = true;
+              btn.textContent = `Save ${itemType}`;
+            });
+          } else {
+            hideLoading();
+            btn.disabled = false;
+            btn.textContent = `Save ${itemType}`;
+            showToast('Error: ' + result.message, 'error');
+          }
+        })
+        .withFailureHandler((error) => {
+          hideLoading();
+          btn.disabled = false;
+          btn.textContent = `Save ${itemType}`;
+          onError(error);
+        })
+        .saveProductionData(dateFormatted, itemType, dataToSave);
+    }
+
+    function openPrintView() {
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+
+      if (!fromDate || !toDate) {
+        showToast('Please select both dates', 'error');
+        return;
+      }
+
+      showToast('Generating print view...', 'info');
+
+      const fromDateFormatted = convertDateFormat(fromDate);
+      const toDateFormatted = convertDateFormat(toDate);
+
+      google.script.run
+        .withSuccessHandler((html) => {
+          const printWindow = window.open('', '_blank');
+          printWindow.document.write(html);
+          printWindow.document.close();
+          showToast('Print view opened successfully!', 'success');
+        })
+        .withFailureHandler(onError)
+        .generatePrintHTML(fromDateFormatted, toDateFormatted);
+    }
+
+    // Add Item Modal Functions
+    function openAddItemModal() {
+      showToast('Opening add item form...', 'info');
+
+      google.script.run
+        .withSuccessHandler((types) => {
+          const select = document.getElementById('newItemType');
+          select.innerHTML = '<option value="">Select Type</option>';
+          types.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            select.appendChild(option);
+          });
+          document.getElementById('addItemModal').classList.add('active');
+        })
+        .withFailureHandler(onError)
+        .getUniqueItemTypes();
+    }
+
+    function closeAddItemModal() {
+      document.getElementById('addItemModal').classList.remove('active');
+      document.getElementById('newItemType').value = '';
+      document.getElementById('newItemTypeCustom').value = '';
+      document.getElementById('newItemName').value = '';
+    }
+
+    function addNewItem() {
+      let itemType = document.getElementById('newItemType').value;
+      const customType = document.getElementById('newItemTypeCustom').value.trim();
+      const itemName = document.getElementById('newItemName').value.trim();
+
+      if (customType) {
+        itemType = customType;
+      }
+
+      if (!itemType || !itemName) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      showToast('Adding new item...', 'info');
+
+      google.script.run
+        .withSuccessHandler((result) => {
+          if (result.success) {
+            showToast(result.message, 'success');
+            closeAddItemModal();
+            loadDashboard();
+          } else {
+            showToast(result.message, 'error');
+          }
+        })
+        .withFailureHandler(onError)
+        .addNewItem(itemName, itemType);
+    }
+
+    // Daily Report Modal Functions
+    function openDailyReportModal() {
+      showToast('Loading items for daily report...', 'info');
+
+      google.script.run
+        .withSuccessHandler((items) => {
+          const select = document.getElementById('reportItemName');
+          select.innerHTML = '<option value="">Select Item</option>';
+          items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            select.appendChild(option);
+          });
+          document.getElementById('dailyReportModal').classList.add('active');
+        })
+        .withFailureHandler(onError)
+        .getAllItemNames();
+    }
+
+    function closeDailyReportModal() {
+      document.getElementById('dailyReportModal').classList.remove('active');
+      document.getElementById('reportItemName').value = '';
+    }
+
+    function generateDailyReport() {
+      const itemName = document.getElementById('reportItemName').value;
+      const fromDate = document.getElementById('reportFromDate').value;
+      const toDate = document.getElementById('reportToDate').value;
+
+      if (!itemName || !fromDate || !toDate) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      showToast('Generating daily report...', 'info');
+
+      const fromDateFormatted = convertDateFormat(fromDate);
+      const toDateFormatted = convertDateFormat(toDate);
+
+      google.script.run
+        .withSuccessHandler((html) => {
+          const reportWindow = window.open('', '_blank');
+          reportWindow.document.write(html);
+          reportWindow.document.close();
+          showToast('Daily report generated successfully!', 'success');
+          closeDailyReportModal();
+        })
+        .withFailureHandler(onError)
+        .generateDailyReportHTML(itemName, fromDateFormatted, toDateFormatted);
+    }
+
+    function onError(error) {
+      console.error('Error:', error);
+      showToast('An error occurred: ' + error.message, 'error');
+    }
+
+    // Close modals when clicking outside
+    window.onclick = function (event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+      }
+    };
+
+    // Handle Enter key press in login
+    document.addEventListener('DOMContentLoaded', function () {
+      const userIdInput = document.getElementById('userId');
+      const passwordInput = document.getElementById('password');
+
+      if (userIdInput) {
+        userIdInput.addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            passwordInput.focus();
+          }
+        });
+      }
+
+      if (passwordInput) {
+        passwordInput.addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            login();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>
