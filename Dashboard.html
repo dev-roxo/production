@@ -487,6 +487,23 @@
       color: #0c5460;
     }
 
+    .bonus-row {
+      background: #d4edda !important;
+      font-weight: bold;
+      color: #155724;
+    }
+
+    .slabs-row {
+      background: #f8f9fa !important;
+      color: #555;
+      font-weight: normal;
+    }
+
+    .slabs-row td {
+      padding: 8px 12px;
+      line-height: 1.6;
+    }
+
     .action-buttons {
       display: flex;
       gap: 10px;
@@ -932,6 +949,85 @@
     let productionData = {};
     let isDateRangeActive = false;
     let currentUser = null;
+
+    // Category-wise bonus slab configuration (based on First Quality %)
+    // Each slab: { min, max, bonus } — ranges are inclusive of min/max.
+    const BONUS_SLABS = {
+      'ALL PEDESTAL': [
+        { min: 95, max: 97.99, bonus: 50 },
+        { min: 98, max: 100, bonus: 75 }
+      ],
+      'ONE PIECE': [
+        { min: 86, max: 89.99, bonus: 100 },
+        { min: 90, max: 94.99, bonus: 200 },
+        { min: 95, max: 100, bonus: 300 }
+      ],
+      'ONE PIECE BASIN': [
+        { min: 90, max: 94.99, bonus: 100 },
+        { min: 95, max: 100, bonus: 150 }
+      ],
+      'ORISSA PAN': [
+        { min: 95, max: 99.99, bonus: 50 },
+        { min: 100, max: 100, bonus: 100 }
+      ],
+      'TABLE TOP': [
+        { min: 95, max: 100, bonus: 50 }
+      ],
+      'URINAL': [
+        { min: 95, max: 99.99, bonus: 50 },
+        { min: 100, max: 100, bonus: 100 }
+      ],
+      'WALL HUNG & FLOOR MOUNT': [
+        { min: 91, max: 94.99, bonus: 50 },
+        { min: 95, max: 100, bonus: 100 }
+      ],
+      'WASH BASIN - HEAVY': [
+        { min: 91, max: 94.99, bonus: 50 },
+        { min: 95, max: 100, bonus: 75 }
+      ],
+      'WASH BASIN - REGULAR': [
+        { min: 91, max: 94.99, bonus: 50 },
+        { min: 95, max: 100, bonus: 75 }
+      ],
+      'WATER CLOSET': [
+        { min: 90, max: 94.99, bonus: 50 },
+        { min: 95, max: 100, bonus: 100 }
+      ]
+    };
+
+    function normalizeBonusKey(type) {
+      return String(type)
+        .toUpperCase()
+        .replace(/&/g, ' AND ')
+        .replace(/FLOUR/g, 'FLOOR')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    const BONUS_SLABS_LOOKUP = {};
+    Object.keys(BONUS_SLABS).forEach(function(k) {
+      BONUS_SLABS_LOOKUP[normalizeBonusKey(k)] = BONUS_SLABS[k];
+    });
+
+    function calculateBonus(itemType, firstPct) {
+      const slabs = BONUS_SLABS_LOOKUP[normalizeBonusKey(itemType)];
+      if (!slabs) return 0;
+      const pct = Number(firstPct);
+      if (isNaN(pct)) return 0;
+      for (let i = 0; i < slabs.length; i++) {
+        if (pct >= slabs[i].min && pct <= slabs[i].max) {
+          return slabs[i].bonus;
+        }
+      }
+      return 0;
+    }
+
+    function getBonusSlabsHTML(itemType) {
+      const slabs = BONUS_SLABS_LOOKUP[normalizeBonusKey(itemType)];
+      if (!slabs || slabs.length === 0) return '';
+      const typeName = escapeHtml(itemType);
+      return slabs.map(s => `- ${typeName} = ${s.min}% to ${s.max}% = Bonus ${s.bonus}`).join('<br>');
+    }
 
     // Login Functions
     function togglePassword() {
@@ -1434,6 +1530,9 @@
       const secondPct = finalTotal > 0 ? (totals.second / finalTotal * 100).toFixed(2) : '0.00';
       const rejectPct = finalTotal > 0 ? (totals.reject / finalTotal * 100).toFixed(2) : '0.00';
       const bhangarPct = finalTotal > 0 ? (totals.bhangar / finalTotal * 100).toFixed(2) : '0.00';
+      const firstSecondPct = finalTotal > 0 ? ((totals.first + totals.second) / finalTotal * 100).toFixed(2) : '0.00';
+
+      const bonusAmount = calculateBonus(itemType, firstSecondPct);
 
       html += `
               <tr class="total-row" id="totals-${encodedItemType}">
@@ -1451,6 +1550,19 @@
                 <td id="pct-reject-${encodedItemType}">${rejectPct}%</td>
                 <td id="pct-bhangar-${encodedItemType}">${bhangarPct}%</td>
                 <td>100%</td>
+              </tr>
+              <tr class="bonus-row">
+                <td>BONUS</td>
+                <td id="bonus-amount-${encodedItemType}">${bonusAmount > 0 ? '₹' + bonusAmount : '—'}</td>
+                <td colspan="4" style="text-align:left; font-weight: normal; font-size: 12px; color: #155724;">
+                  <span id="bonus-pct-${encodedItemType}">First + Second: ${firstSecondPct}%</span>
+                </td>
+              </tr>
+              <tr class="slabs-row">
+                <td colspan="6" style="text-align:left; font-size: 12px; color: #555;">
+                  <strong>Slabs:</strong><br>
+                  ${getBonusSlabsHTML(itemType)}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1528,11 +1640,22 @@
       const secondPct = totals.total > 0 ? (totals.second / totals.total * 100).toFixed(2) : '0.00';
       const rejectPct = totals.total > 0 ? (totals.reject / totals.total * 100).toFixed(2) : '0.00';
       const bhangarPct = totals.total > 0 ? (totals.bhangar / totals.total * 100).toFixed(2) : '0.00';
+      const firstSecondPct = totals.total > 0 ? ((totals.first + totals.second) / totals.total * 100).toFixed(2) : '0.00';
 
       document.getElementById(`pct-first-${safeItemType}`).textContent = firstPct + '%';
       document.getElementById(`pct-second-${safeItemType}`).textContent = secondPct + '%';
       document.getElementById(`pct-reject-${safeItemType}`).textContent = rejectPct + '%';
       document.getElementById(`pct-bhangar-${safeItemType}`).textContent = bhangarPct + '%';
+
+      const bonusAmount = calculateBonus(itemType, firstSecondPct);
+      const bonusCell = document.getElementById(`bonus-amount-${safeItemType}`);
+      if (bonusCell) {
+        bonusCell.textContent = bonusAmount > 0 ? '₹' + bonusAmount : '—';
+      }
+      const bonusPctCell = document.getElementById(`bonus-pct-${safeItemType}`);
+      if (bonusPctCell) {
+        bonusPctCell.textContent = 'First + Second: ' + firstSecondPct + '%';
+      }
     }
 
     function saveData(btn, itemType) {

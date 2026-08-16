@@ -644,6 +644,94 @@ function processDataForPrint(dataArray) {
 }
 
 /**
+ * Category-wise bonus slab configuration (based on First Quality %).
+ * Each slab: { min, max, bonus } — ranges are inclusive of min/max.
+ */
+const BONUS_SLABS = {
+  "ALL PEDESTAL": [
+    { min: 95, max: 97.99, bonus: 50 },
+    { min: 98, max: 100, bonus: 75 }
+  ],
+  "ONE PIECE": [
+    { min: 86, max: 89.99, bonus: 100 },
+    { min: 90, max: 94.99, bonus: 200 },
+    { min: 95, max: 100, bonus: 300 }
+  ],
+  "ONE PIECE BASIN": [
+    { min: 90, max: 94.99, bonus: 100 },
+    { min: 95, max: 100, bonus: 150 }
+  ],
+  "ORISSA PAN": [
+    { min: 95, max: 99.99, bonus: 50 },
+    { min: 100, max: 100, bonus: 100 }
+  ],
+  "TABLE TOP": [
+    { min: 95, max: 100, bonus: 50 }
+  ],
+  "URINAL": [
+    { min: 95, max: 99.99, bonus: 50 },
+    { min: 100, max: 100, bonus: 100 }
+  ],
+  "WALL HUNG & FLOOR MOUNT": [
+    { min: 91, max: 94.99, bonus: 50 },
+    { min: 95, max: 100, bonus: 100 }
+  ],
+  "WASH BASIN - HEAVY": [
+    { min: 91, max: 94.99, bonus: 50 },
+    { min: 95, max: 100, bonus: 75 }
+  ],
+  "WASH BASIN - REGULAR": [
+    { min: 91, max: 94.99, bonus: 50 },
+    { min: 95, max: 100, bonus: 75 }
+  ],
+  "WATER CLOSET": [
+    { min: 90, max: 94.99, bonus: 50 },
+    { min: 95, max: 100, bonus: 100 }
+  ]
+};
+
+function normalizeBonusKey(type) {
+  return String(type)
+    .toUpperCase()
+    .replace(/&/g, " AND ")
+    .replace(/FLOUR/g, "FLOOR")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+var BONUS_SLABS_LOOKUP = {};
+Object.keys(BONUS_SLABS).forEach(function (k) {
+  BONUS_SLABS_LOOKUP[normalizeBonusKey(k)] = BONUS_SLABS[k];
+});
+
+function calculateBonus(itemType, firstPct) {
+  const slabs = BONUS_SLABS_LOOKUP[normalizeBonusKey(itemType)];
+  if (!slabs) return 0;
+  const pct = Number(firstPct);
+  if (isNaN(pct)) return 0;
+  for (let i = 0; i < slabs.length; i++) {
+    if (pct >= slabs[i].min && pct <= slabs[i].max) {
+      return slabs[i].bonus;
+    }
+  }
+  return 0;
+}
+
+function getBonusSlabsHTML(itemType) {
+  const slabs = BONUS_SLABS_LOOKUP[normalizeBonusKey(itemType)];
+  if (!slabs || slabs.length === 0) return "";
+  const typeName = String(itemType)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return slabs
+    .map(function (s) {
+      return `- ${typeName} = ${s.min}% to ${s.max}% = Bonus ${s.bonus}`;
+    })
+    .join("<br>");
+}
+
+/**
  * Generate HTML for printing - keeping your existing function with user name added
  */
 function generatePrintHTML(fromDate, toDate) {
@@ -845,6 +933,23 @@ function generatePrintHTML(fromDate, toDate) {
       color: #0c5460;
     }
     
+    .data-table .bonus-row {
+      background: #d4edda;
+      font-weight: bold;
+      color: #155724;
+    }
+    
+    .data-table .slabs-row {
+      background: #f8f9fa;
+      color: #555;
+      font-weight: normal;
+    }
+    
+    .data-table .slabs-row td {
+      padding: 8px 12px;
+      line-height: 1.6;
+    }
+    
     .print-footer {
       text-align: center;
       margin-top: 20px;
@@ -985,6 +1090,13 @@ function generatePrintHTML(fromDate, toDate) {
           ? ((totals.bhangar / totals.total) * 100).toFixed(2)
           : "0.00";
 
+      // Bonus based on First + Second total %
+      const firstSecondPct =
+        totals.total > 0
+          ? (((totals.first + totals.second) / totals.total) * 100).toFixed(2)
+          : "0.00";
+      const bonusAmount = calculateBonus(itemType, firstSecondPct);
+
       // Add page break after every item type except the last one
       const pageBreak = itemIndex < itemTypeKeys.length - 1 ? "page-break" : "";
 
@@ -1027,6 +1139,19 @@ function generatePrintHTML(fromDate, toDate) {
             <td>${rejectPct}%</td>
             <td>${bhangarPct}%</td>
             <td>100%</td>
+          </tr>
+          <tr class="bonus-row">
+            <td>BONUS</td>
+            <td>${bonusAmount > 0 ? "₹" + bonusAmount : "—"}</td>
+            <td colspan="4" style="text-align:left; font-weight: normal; font-size: 11px; color: #155724;">
+              First + Second: ${firstSecondPct}%
+            </td>
+          </tr>
+          <tr class="slabs-row">
+            <td colspan="6" style="text-align:left; font-size: 11px; color: #555;">
+              <strong>Slabs:</strong><br>
+              ${getBonusSlabsHTML(itemType)}
+            </td>
           </tr>
         </tbody>
       </table>
