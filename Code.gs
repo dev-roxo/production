@@ -752,32 +752,30 @@ function generatePrintHTML(fromDate, toDate, categoryFilter) {
 
     const itemTypes = getItemTypes();
     const data = getProductionData(fromDate, toDate);
-      const processedData = processDataForPrint(data);
-
-      // When a single category filter is applied, still show summary for that category only
-      if (categoryFilter && categoryFilter !== "ALL") {
-        // Recompute summary for filtered data only
-        let totalFirst = 0, totalSecond = 0, totalReject = 0, totalBhangar = 0, grandTotal = 0;
-        data.forEach((row) => {
-          if (String(row.itemType).trim() === categoryFilter) {
-            totalFirst += Number(row.first) || 0;
-            totalSecond += Number(row.second) || 0;
-            totalReject += Number(row.reject) || 0;
-            totalBhangar += Number(row.bhangar) || 0;
-            grandTotal += Number(row.total) || 0;
-          }
-        });
-        const firstPct = grandTotal > 0 ? ((totalFirst / grandTotal) * 100).toFixed(2) : "0.00";
-        const secondPct = grandTotal > 0 ? ((totalSecond / grandTotal) * 100).toFixed(2) : "0.00";
-        const rejectPct = grandTotal > 0 ? ((totalReject / grandTotal) * 100).toFixed(2) : "0.00";
-        const bhangarPct = grandTotal > 0 ? ((totalBhangar / grandTotal) * 100).toFixed(2) : "0.00";
-        // override summary object
-        Object.assign(summary, {
-          totalFirst, totalSecond, totalReject, totalBhangar, grandTotal,
-          firstPct, secondPct, rejectPct, bhangarPct,
-        });
-      }
+    const processedData = processDataForPrint(data);
     const summary = getDashboardSummary(fromDate, toDate);
+
+    // When a single category filter is applied, recompute summary for that category only
+    if (categoryFilter && categoryFilter !== "ALL") {
+      let totalFirst = 0, totalSecond = 0, totalReject = 0, totalBhangar = 0, grandTotal = 0;
+      data.forEach((row) => {
+        if (String(row.itemType).trim() === categoryFilter) {
+          totalFirst += Number(row.first) || 0;
+          totalSecond += Number(row.second) || 0;
+          totalReject += Number(row.reject) || 0;
+          totalBhangar += Number(row.bhangar) || 0;
+          grandTotal += Number(row.total) || 0;
+        }
+      });
+      const firstPct = grandTotal > 0 ? ((totalFirst / grandTotal) * 100).toFixed(2) : "0.00";
+      const secondPct = grandTotal > 0 ? ((totalSecond / grandTotal) * 100).toFixed(2) : "0.00";
+      const rejectPct = grandTotal > 0 ? ((totalReject / grandTotal) * 100).toFixed(2) : "0.00";
+      const bhangarPct = grandTotal > 0 ? ((totalBhangar / grandTotal) * 100).toFixed(2) : "0.00";
+      Object.assign(summary, {
+        totalFirst, totalSecond, totalReject, totalBhangar, grandTotal,
+        firstPct, secondPct, rejectPct, bhangarPct,
+      });
+    }
 
     // Adjust summary + header text for category filter
     let filterLabel = "All Categories";
