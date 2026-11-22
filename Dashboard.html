@@ -742,14 +742,6 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .loading-progress {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 18px;
-      font-weight: 600;
-      margin-top: 10px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
     @media (max-width: 768px) {
       .control-group {
         flex-direction: column;
@@ -899,7 +891,6 @@
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
     <div class="loading-text">Saving data...</div>
-    <div class="loading-progress" id="loadingProgress">0%</div>
   </div>
 
   <!-- Print Report Modal -->
@@ -976,8 +967,6 @@
     let isDateRangeActive = false;
     let currentUser = null;
     let progressInterval = null;
-    let progressTarget = 0;
-    let progressCurrent = 0;
 
     // Category-wise bonus slab configuration (based on First Quality %)
     // Each slab: { min, max, bonus } — ranges are inclusive of min/max.
@@ -1281,40 +1270,11 @@
     function showLoading(text) {
       const overlay = document.getElementById('loadingOverlay');
       overlay.querySelector('.loading-text').textContent = text || 'Loading...';
-      progressCurrent = 0;
-      progressTarget = 10;
-      const progress = overlay.querySelector('#loadingProgress');
-      if (progress) progress.textContent = '0%';
       overlay.classList.add('active');
-      if (progressInterval) clearInterval(progressInterval);
-      progressInterval = setInterval(function() {
-        // Move current toward target smoothly
-        if (progressCurrent < progressTarget) {
-          progressCurrent = Math.min(progressTarget, progressCurrent + 1);
-          const p = document.getElementById('loadingProgress');
-          if (p) p.textContent = progressCurrent + '%';
-        }
-      }, 30);
-    }
-
-    function setProgress(pct) {
-      // Raise the target; the interval animates current toward it
-      progressTarget = Math.min(100, Math.max(progressTarget, Math.round(pct)));
     }
 
     function hideLoading() {
-      if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-      }
-      progressTarget = 100;
-      progressCurrent = 100;
-      const progress = document.getElementById('loadingProgress');
-      if (progress) progress.textContent = '100%';
-      setTimeout(function() {
-        if (progress) progress.textContent = '0%';
-        document.getElementById('loadingOverlay').classList.remove('active');
-      }, 300);
+      document.getElementById('loadingOverlay').classList.remove('active');
     }
 
     function loadDashboard(onComplete) {
@@ -1346,7 +1306,6 @@
 
       google.script.run
         .withSuccessHandler((result) => {
-          setProgress(40);
           if (!result || !result.itemTypes || Object.keys(result.itemTypes).length === 0) {
             showToast('No item types found. Please add items first.', 'warning');
             container.innerHTML = '<div class="loading">No item types configured. Please add items using the "Add Item" button.</div>';
@@ -1354,20 +1313,17 @@
             return;
           }
           itemTypes = result.itemTypes;
-          setProgress(60);
           if (!result.productionData) {
             showToast('No production data found for this date range', 'warning');
             productionData = {};
           } else {
             productionData = processProductionData(result.productionData);
           }
-          setProgress(75);
           renderTabs();
 
           // Compute summary client-side from production data (no extra RPC)
           const summary = computeSummary(result.productionData);
           onSummaryLoaded(summary);
-          setProgress(90);
 
           checkDone();
         })
@@ -1832,7 +1788,6 @@
       }
 
       showLoading('Generating print view...');
-      setProgress(30);
       closePrintReportModal();
 
       const fromDateFormatted = convertDateFormat(fromDate);
@@ -1946,7 +1901,6 @@
       }
 
       showLoading('Generating daily report...');
-      setProgress(30);
 
       const fromDateFormatted = convertDateFormat(fromDate);
       const toDateFormatted = convertDateFormat(toDate);
