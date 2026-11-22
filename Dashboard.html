@@ -893,6 +893,23 @@
     <div class="loading-text">Saving data...</div>
   </div>
 
+  <!-- Print Report Modal -->
+  <div class="modal" id="printReportModal">
+    <div class="modal-content">
+      <div class="modal-header">Print Report - Select Category</div>
+      <div class="form-group">
+        <label for="printCategory">Category</label>
+        <select id="printCategory">
+          <option value="ALL">All Categories</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closePrintReportModal()">Cancel</button>
+        <button class="btn btn-success" onclick="generatePrintReport()">Print</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Add Item Modal -->
   <div class="modal" id="addItemModal">
     <div class="modal-content">
@@ -1741,42 +1758,51 @@
         return;
       }
 
+      google.script.run
+        .withSuccessHandler((types) => {
+          const select = document.getElementById('printCategory');
+          select.innerHTML = '<option value="ALL">All Categories</option>';
+          types.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            select.appendChild(option);
+          });
+          document.getElementById('printReportModal').classList.add('active');
+        })
+        .withFailureHandler(onError)
+        .getUniqueItemTypes();
+    }
+
+    function closePrintReportModal() {
+      document.getElementById('printReportModal').classList.remove('active');
+    }
+
+    function generatePrintReport() {
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      const category = document.getElementById('printCategory').value;
+
+      if (!fromDate || !toDate) {
+        showToast('Please select both dates', 'error');
+        return;
+      }
+
       showToast('Generating print view...', 'info');
+      closePrintReportModal();
 
       const fromDateFormatted = convertDateFormat(fromDate);
       const toDateFormatted = convertDateFormat(toDate);
 
-      // Show category selection popup
       google.script.run
-        .withSuccessHandler((types) => {
-          const choice = prompt('Print report for which category?\\n\\nEnter category name or "ALL" for all categories.\\n\\nAvailable categories:\\n' + types.join('\\n'));
-          if (choice === null) return; // cancelled
-          const selected = choice.trim() === '' ? 'ALL' : choice.trim().toUpperCase();
-
-          let matched = 'ALL';
-          if (selected !== 'ALL') {
-            const found = types.find(t => t.toUpperCase() === selected);
-            if (!found) {
-              showToast('Category not found: ' + choice, 'error');
-              return;
-            }
-            matched = found;
-          }
-
-          showToast('Generating print view...', 'info');
-
-          google.script.run
-            .withSuccessHandler((html) => {
-              const printWindow = window.open('', '_blank');
-              printWindow.document.write(html);
-              printWindow.document.close();
-              showToast('Print view opened successfully!', 'success');
-            })
-            .withFailureHandler(onError)
-            .generatePrintHTML(fromDateFormatted, toDateFormatted, matched);
+        .withSuccessHandler((html) => {
+          const printWindow = window.open('', '_blank');
+          printWindow.document.write(html);
+          printWindow.document.close();
+          showToast('Print view opened successfully!', 'success');
         })
         .withFailureHandler(onError)
-        .getUniqueItemTypes();
+        .generatePrintHTML(fromDateFormatted, toDateFormatted, category);
     }
 
     // Add Item Modal Functions
