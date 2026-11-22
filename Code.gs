@@ -1305,8 +1305,8 @@ function getDailyReport(itemName, fromDate, toDate) {
     const fromDateObj = parseDDMMYYYY(fromDate);
     fromDateObj.setHours(0, 0, 0, 0);
 
-    const toDateObj = parseDDMMYYYY(toDate);
-    toDateObj.setHours(23, 59, 59, 999);
+    const toDateLimit = parseDDMMYYYY(toDate);
+    toDateLimit.setHours(23, 59, 59, 999);
 
     const targetItemName = String(itemName).trim();
 
@@ -1318,7 +1318,7 @@ function getDailyReport(itemName, fromDate, toDate) {
         rowDate &&
         rowItemName === targetItemName &&
         rowDate >= fromDateObj &&
-        rowDate <= toDateObj
+        rowDate <= toDateLimit
       ) {
         const first = Number(row[4]) || 0;
         const second = Number(row[5]) || 0;
