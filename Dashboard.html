@@ -976,6 +976,8 @@
     let isDateRangeActive = false;
     let currentUser = null;
     let progressInterval = null;
+    let progressTarget = 0;
+    let progressCurrent = 0;
 
     // Category-wise bonus slab configuration (based on First Quality %)
     // Each slab: { min, max, bonus } — ranges are inclusive of min/max.
@@ -1279,23 +1281,25 @@
     function showLoading(text) {
       const overlay = document.getElementById('loadingOverlay');
       overlay.querySelector('.loading-text').textContent = text || 'Loading...';
-      overlay.querySelector('#loadingProgress').textContent = '0%';
+      progressCurrent = 0;
+      progressTarget = 10;
+      const progress = overlay.querySelector('#loadingProgress');
+      if (progress) progress.textContent = '0%';
       overlay.classList.add('active');
-      // Animate progress from 0 up to 90% based on elapsed time
       if (progressInterval) clearInterval(progressInterval);
-      let current = 0;
       progressInterval = setInterval(function() {
-        if (current < 90) {
-          current += 1;
-          const progress = document.getElementById('loadingProgress');
-          if (progress) progress.textContent = current + '%';
+        // Move current toward target smoothly
+        if (progressCurrent < progressTarget) {
+          progressCurrent = Math.min(progressTarget, progressCurrent + 1);
+          const p = document.getElementById('loadingProgress');
+          if (p) p.textContent = progressCurrent + '%';
         }
-      }, 50);
+      }, 30);
     }
 
     function setProgress(pct) {
-      const progress = document.getElementById('loadingProgress');
-      if (progress) progress.textContent = Math.min(100, Math.max(0, Math.round(pct))) + '%';
+      // Raise the target; the interval animates current toward it
+      progressTarget = Math.min(100, Math.max(progressTarget, Math.round(pct)));
     }
 
     function hideLoading() {
@@ -1303,12 +1307,14 @@
         clearInterval(progressInterval);
         progressInterval = null;
       }
+      progressTarget = 100;
+      progressCurrent = 100;
       const progress = document.getElementById('loadingProgress');
       if (progress) progress.textContent = '100%';
       setTimeout(function() {
         if (progress) progress.textContent = '0%';
         document.getElementById('loadingOverlay').classList.remove('active');
-      }, 200);
+      }, 300);
     }
 
     function loadDashboard(onComplete) {
@@ -1340,6 +1346,7 @@
 
       google.script.run
         .withSuccessHandler((result) => {
+          setProgress(40);
           if (!result || !result.itemTypes || Object.keys(result.itemTypes).length === 0) {
             showToast('No item types found. Please add items first.', 'warning');
             container.innerHTML = '<div class="loading">No item types configured. Please add items using the "Add Item" button.</div>';
@@ -1347,17 +1354,20 @@
             return;
           }
           itemTypes = result.itemTypes;
+          setProgress(60);
           if (!result.productionData) {
             showToast('No production data found for this date range', 'warning');
             productionData = {};
           } else {
             productionData = processProductionData(result.productionData);
           }
+          setProgress(75);
           renderTabs();
 
           // Compute summary client-side from production data (no extra RPC)
           const summary = computeSummary(result.productionData);
           onSummaryLoaded(summary);
+          setProgress(90);
 
           checkDone();
         })
@@ -1822,6 +1832,7 @@
       }
 
       showLoading('Generating print view...');
+      setProgress(30);
       closePrintReportModal();
 
       const fromDateFormatted = convertDateFormat(fromDate);
@@ -1935,6 +1946,7 @@
       }
 
       showLoading('Generating daily report...');
+      setProgress(30);
 
       const fromDateFormatted = convertDateFormat(fromDate);
       const toDateFormatted = convertDateFormat(toDate);
