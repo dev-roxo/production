@@ -1285,7 +1285,7 @@
         return;
       }
 
-      showToast('Loading dashboard data...from:' + fromDate + ' to:' + toDate, 'info');
+      showLoading('Loading dashboard data...');
 
       const container = document.getElementById('tabContentContainer');
       container.innerHTML = '<div class="loading">Loading data</div>';
@@ -1323,7 +1323,6 @@
                 productionData = processProductionData(productionDataArray);
               }
               renderTabs();
-              showToast('Dashboard loaded successfully!', 'success');
               checkDone();
             })
             .withFailureHandler((error) => {
@@ -1788,7 +1787,7 @@
         return;
       }
 
-      showToast('Generating print view...', 'info');
+      showLoading('Generating print view...');
       closePrintReportModal();
 
       const fromDateFormatted = convertDateFormat(fromDate);
@@ -1799,9 +1798,13 @@
           const printWindow = window.open('', '_blank');
           printWindow.document.write(html);
           printWindow.document.close();
+          hideLoading();
           showToast('Print view opened successfully!', 'success');
         })
-        .withFailureHandler(onError)
+        .withFailureHandler((error) => {
+          hideLoading();
+          onError(error);
+        })
         .generatePrintHTML(fromDateFormatted, toDateFormatted, category);
     }
 
@@ -1897,7 +1900,7 @@
         return;
       }
 
-      showToast('Generating daily report...', 'info');
+      showLoading('Generating daily report...');
 
       const fromDateFormatted = convertDateFormat(fromDate);
       const toDateFormatted = convertDateFormat(toDate);
@@ -1907,10 +1910,14 @@
           const reportWindow = window.open('', '_blank');
           reportWindow.document.write(html);
           reportWindow.document.close();
+          hideLoading();
           showToast('Daily report generated successfully!', 'success');
           closeDailyReportModal();
         })
-        .withFailureHandler(onError)
+        .withFailureHandler((error) => {
+          hideLoading();
+          onError(error);
+        })
         .generateDailyReportHTML(itemName, fromDateFormatted, toDateFormatted);
     }
 
