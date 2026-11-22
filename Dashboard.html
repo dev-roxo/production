@@ -742,6 +742,14 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
+    .loading-progress {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 10px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
     @media (max-width: 768px) {
       .control-group {
         flex-direction: column;
@@ -891,6 +899,7 @@
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
     <div class="loading-text">Saving data...</div>
+    <div class="loading-progress" id="loadingProgress">0%</div>
   </div>
 
   <!-- Print Report Modal -->
@@ -1269,10 +1278,17 @@
     function showLoading(text) {
       const overlay = document.getElementById('loadingOverlay');
       overlay.querySelector('.loading-text').textContent = text || 'Loading...';
+      overlay.querySelector('#loadingProgress').textContent = '0%';
       overlay.classList.add('active');
     }
 
+    function setProgress(pct) {
+      const progress = document.getElementById('loadingProgress');
+      if (progress) progress.textContent = Math.min(100, Math.max(0, Math.round(pct))) + '%';
+    }
+
     function hideLoading() {
+      document.getElementById('loadingProgress').textContent = '0%';
       document.getElementById('loadingOverlay').classList.remove('active');
     }
 
@@ -1297,7 +1313,8 @@
       function checkDone() {
         pendingCalls--;
         if (pendingCalls <= 0) {
-          hideLoading();
+          setProgress(100);
+          setTimeout(hideLoading, 200);
           checkDateRange();
           if (onComplete) onComplete();
         }
@@ -1312,6 +1329,7 @@
             return;
           }
           itemTypes = data;
+          setProgress(40);
 
           // Load production data
           google.script.run
@@ -1323,6 +1341,7 @@
                 productionData = processProductionData(productionDataArray);
               }
               renderTabs();
+              setProgress(80);
               checkDone();
             })
             .withFailureHandler((error) => {
@@ -1345,6 +1364,7 @@
       google.script.run
         .withSuccessHandler((summary) => {
           onSummaryLoaded(summary);
+          setProgress(90);
           checkDone();
         })
         .withFailureHandler((error) => {
@@ -1798,7 +1818,8 @@
           const printWindow = window.open('', '_blank');
           printWindow.document.write(html);
           printWindow.document.close();
-          hideLoading();
+          setProgress(100);
+          setTimeout(hideLoading, 200);
           showToast('Print view opened successfully!', 'success');
         })
         .withFailureHandler((error) => {
@@ -1910,7 +1931,8 @@
           const reportWindow = window.open('', '_blank');
           reportWindow.document.write(html);
           reportWindow.document.close();
-          hideLoading();
+          setProgress(100);
+          setTimeout(hideLoading, 200);
           showToast('Daily report generated successfully!', 'success');
           closeDailyReportModal();
         })
