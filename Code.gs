@@ -1413,6 +1413,7 @@ function getDailyReport(itemName, fromDate, toDate) {
 
         dailyData.push({
           guid: String(row[0]).trim(),
+          _sort: rowDate.getTime(),
           date: Utilities.formatDate(
             rowDate,
             Session.getScriptTimeZone(),
@@ -1432,11 +1433,10 @@ function getDailyReport(itemName, fromDate, toDate) {
     });
 
     // Sort by date
-    dailyData.sort((a, b) => {
-      const dateA = parseDDMMYYYY(a.date);
-      const dateB = parseDDMMYYYY(b.date);
-      return dateA - dateB;
-    });
+    dailyData.sort((a, b) => a._sort - b._sort);
+
+    // Remove internal sort key
+    dailyData.forEach((d) => delete d._sort);
 
     return dailyData;
   } catch (error) {
