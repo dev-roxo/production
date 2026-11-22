@@ -1328,7 +1328,7 @@
       const fromDateFormatted = convertDateFormat(fromDate);
       const toDateFormatted = convertDateFormat(toDate);
 
-      let pendingCalls = 2;
+      let pendingCalls = 1;
       function checkDone() {
         pendingCalls--;
         if (pendingCalls <= 0) {
@@ -1339,54 +1339,53 @@
       }
 
       google.script.run
-        .withSuccessHandler((data) => {
-          if (!data || Object.keys(data).length === 0) {
+        .withSuccessHandler((result) => {
+          if (!result || !result.itemTypes || Object.keys(result.itemTypes).length === 0) {
             showToast('No item types found. Please add items first.', 'warning');
             container.innerHTML = '<div class="loading">No item types configured. Please add items using the "Add Item" button.</div>';
             checkDone();
             return;
           }
-          itemTypes = data;
+          itemTypes = result.itemTypes;
+          if (!result.productionData) {
+            showToast('No production data found for this date range', 'warning');
+            productionData = {};
+          } else {
+            productionData = processProductionData(result.productionData);
+          }
+          renderTabs();
 
-          // Load production data
-          google.script.run
-            .withSuccessHandler((productionDataArray) => {
-              if (!productionDataArray) {
-                showToast('No production data found for this date range', 'warning');
-                productionData = {};
-              } else {
-                productionData = processProductionData(productionDataArray);
-              }
-              renderTabs();
-              checkDone();
-            })
-            .withFailureHandler((error) => {
-              console.error('Error loading production data:', error);
-              showToast('Error loading production data: ' + error.message, 'error');
-              container.innerHTML = '<div class="loading">Error loading data. Please try again.</div>';
-              checkDone();
-            })
-            .getProductionData(fromDateFormatted, toDateFormatted);
+          // Compute summary client-side from production data (no extra RPC)
+          const summary = computeSummary(result.productionData);
+          onSummaryLoaded(summary);
+
+          checkDone();
         })
         .withFailureHandler((error) => {
-          console.error('Error loading item types:', error);
+          console.error('Error loading dashboard data:', error);
           showToast('Error loading data: ' + error.message, 'error');
           container.innerHTML = '<div class="loading">Error loading data. Please try logging in again.</div>';
           checkDone();
         })
-        .getItemTypes();
+        .getDashboardData(fromDateFormatted, toDateFormatted);
+    }
 
-      // Load summary independently
-      google.script.run
-        .withSuccessHandler((summary) => {
-          onSummaryLoaded(summary);
-          checkDone();
-        })
-        .withFailureHandler((error) => {
-          console.error('Error loading summary:', error);
-          checkDone();
-        })
-        .getDashboardSummary(fromDateFormatted, toDateFormatted);
+    function computeSummary(dataArray) {
+      let totalFirst = 0, totalSecond = 0, totalReject = 0, totalBhangar = 0, grandTotal = 0;
+      if (Array.isArray(dataArray)) {
+        dataArray.forEach(row => {
+          totalFirst += Number(row.first) || 0;
+          totalSecond += Number(row.second) || 0;
+          totalReject += Number(row.reject) || 0;
+          totalBhangar += Number(row.bhangar) || 0;
+          grandTotal += Number(row.total) || 0;
+        });
+      }
+      const firstPct = grandTotal > 0 ? ((totalFirst / grandTotal) * 100).toFixed(2) : '0.00';
+      const secondPct = grandTotal > 0 ? ((totalSecond / grandTotal) * 100).toFixed(2) : '0.00';
+      const rejectPct = grandTotal > 0 ? ((totalReject / grandTotal) * 100).toFixed(2) : '0.00';
+      const bhangarPct = grandTotal > 0 ? ((totalBhangar / grandTotal) * 100).toFixed(2) : '0.00';
+      return { totalFirst, totalSecond, totalReject, totalBhangar, grandTotal, firstPct, secondPct, rejectPct, bhangarPct };
     }
     // function processProductionData(dataArray) {
     //   const processed = {};

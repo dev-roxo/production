@@ -242,6 +242,12 @@ function openDashboard() {
  */
 function getItemTypes() {
   try {
+    const cache = CacheService.getScriptCache();
+    const cached = cache.get("itemTypes");
+    if (cached) {
+      try { return JSON.parse(cached); } catch (e) {}
+    }
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const itemsSheet = ss.getSheetByName("Items");
 
@@ -274,11 +280,22 @@ function getItemTypes() {
       );
     }
 
+    try { cache.put("itemTypes", JSON.stringify(itemTypes), 300); } catch (e) {}
     return itemTypes;
   } catch (error) {
     Logger.log("Error in getItemTypes: " + error.message);
     return {};
   }
+}
+
+/**
+ * Combined dashboard data fetch - single RPC instead of two.
+ */
+function getDashboardData(fromDate, toDate) {
+  return {
+    itemTypes: getItemTypes(),
+    productionData: getProductionData(fromDate, toDate),
+  };
 }
 
 function toDateObj(cellValue) {
@@ -753,7 +770,24 @@ function generatePrintHTML(fromDate, toDate, categoryFilter) {
     const itemTypes = getItemTypes();
     const data = getProductionData(fromDate, toDate);
     const processedData = processDataForPrint(data);
-    const summary = getDashboardSummary(fromDate, toDate);
+
+    // Compute summary from data (avoid duplicate getProductionData call)
+    let totalFirst = 0, totalSecond = 0, totalReject = 0, totalBhangar = 0, grandTotal = 0;
+    data.forEach((row) => {
+      totalFirst += Number(row.first) || 0;
+      totalSecond += Number(row.second) || 0;
+      totalReject += Number(row.reject) || 0;
+      totalBhangar += Number(row.bhangar) || 0;
+      grandTotal += Number(row.total) || 0;
+    });
+    const firstPct = grandTotal > 0 ? ((totalFirst / grandTotal) * 100).toFixed(2) : "0.00";
+    const secondPct = grandTotal > 0 ? ((totalSecond / grandTotal) * 100).toFixed(2) : "0.00";
+    const rejectPct = grandTotal > 0 ? ((totalReject / grandTotal) * 100).toFixed(2) : "0.00";
+    const bhangarPct = grandTotal > 0 ? ((totalBhangar / grandTotal) * 100).toFixed(2) : "0.00";
+    const summary = {
+      totalFirst, totalSecond, totalReject, totalBhangar, grandTotal,
+      firstPct, secondPct, rejectPct, bhangarPct,
+    };
 
     // When a single category filter is applied, recompute summary for that category only
     if (categoryFilter && categoryFilter !== "ALL") {
@@ -1259,6 +1293,11 @@ function addNewItem(itemName, itemType) {
     // Add new item
     itemsSheet.appendRow([itemNameStr, itemTypeStr]);
 
+    // Invalidate item types cache
+    try { CacheService.getScriptCache().remove("itemTypes"); } catch (e) {}
+    try { CacheService.getScriptCache().remove("uniqueItemTypes"); } catch (e) {}
+    try { CacheService.getScriptCache().remove("allItemNames"); } catch (e) {}
+
     // Log activity if user is logged in
     if (session.userId) {
       logActivity(
@@ -1288,6 +1327,12 @@ function addNewItem(itemName, itemType) {
  */
 function getUniqueItemTypes() {
   try {
+    const cache = CacheService.getScriptCache();
+    const cached = cache.get("uniqueItemTypes");
+    if (cached) {
+      try { return JSON.parse(cached); } catch (e) {}
+    }
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const itemsSheet = ss.getSheetByName("Items");
 
@@ -1310,7 +1355,9 @@ function getUniqueItemTypes() {
       ),
     ];
 
-    return uniqueTypes.sort();
+    const result = uniqueTypes.sort();
+    try { cache.put("uniqueItemTypes", JSON.stringify(result), 300); } catch (e) {}
+    return result;
   } catch (error) {
     Logger.log("Error getting item types: " + error.message);
     return [];
@@ -1403,6 +1450,12 @@ function getDailyReport(itemName, fromDate, toDate) {
  */
 function getAllItemNames() {
   try {
+    const cache = CacheService.getScriptCache();
+    const cached = cache.get("allItemNames");
+    if (cached) {
+      try { return JSON.parse(cached); } catch (e) {}
+    }
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const itemsSheet = ss.getSheetByName("Items");
 
@@ -1421,8 +1474,9 @@ function getAllItemNames() {
       .map((name) => String(name).trim())
       .filter((name) => name !== "");
 
-    // Remove duplicates and sort
-    return [...new Set(itemNames)].sort();
+    const result = [...new Set(itemNames)].sort();
+    try { cache.put("allItemNames", JSON.stringify(result), 300); } catch (e) {}
+    return result;
   } catch (error) {
     Logger.log("Error getting item names: " + error.message);
     return [];
