@@ -1746,15 +1746,37 @@
       const fromDateFormatted = convertDateFormat(fromDate);
       const toDateFormatted = convertDateFormat(toDate);
 
+      // Show category selection popup
       google.script.run
-        .withSuccessHandler((html) => {
-          const printWindow = window.open('', '_blank');
-          printWindow.document.write(html);
-          printWindow.document.close();
-          showToast('Print view opened successfully!', 'success');
+        .withSuccessHandler((types) => {
+          const choice = prompt('Print report for which category?\\n\\nEnter category name or "ALL" for all categories.\\n\\nAvailable categories:\\n' + types.join('\\n'));
+          if (choice === null) return; // cancelled
+          const selected = choice.trim() === '' ? 'ALL' : choice.trim().toUpperCase();
+
+          let matched = 'ALL';
+          if (selected !== 'ALL') {
+            const found = types.find(t => t.toUpperCase() === selected);
+            if (!found) {
+              showToast('Category not found: ' + choice, 'error');
+              return;
+            }
+            matched = found;
+          }
+
+          showToast('Generating print view...', 'info');
+
+          google.script.run
+            .withSuccessHandler((html) => {
+              const printWindow = window.open('', '_blank');
+              printWindow.document.write(html);
+              printWindow.document.close();
+              showToast('Print view opened successfully!', 'success');
+            })
+            .withFailureHandler(onError)
+            .generatePrintHTML(fromDateFormatted, toDateFormatted, matched);
         })
         .withFailureHandler(onError)
-        .generatePrintHTML(fromDateFormatted, toDateFormatted);
+        .getUniqueItemTypes();
     }
 
     // Add Item Modal Functions
